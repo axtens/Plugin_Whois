@@ -16,16 +16,18 @@ namespace Whois
             if (debug) Debugger.Launch();
             var response = WhoisClient.Query(domain);
             var (raw, endMatter) = RemoveEndMatter(response.Raw);
-            var json = new JSON();
-            json.AddressRange = response.AddressRange?.ToString();
-            json.Raw = (from line in response.Raw.Split(new char[] { '\r', '\n' }) where line.Length > 0 select line).ToArray();
-            json.OrganizationName = response.OrganizationName;
-            json.RespondedServers = response.RespondedServers;
-            json.RegistrarRegistrationExpirationDate = ExtractPartFromRaw("Registrar Registration Expiration Date", "", raw);
-            json.DomainStatus = ExtractPartFromRaw("Domain Status", "", raw).Split(' ')[0];
-            json.NameServers = ExtractPartFromRaw("Name Server", ",", raw).ToLower();
-            json.AllParts = ExtractAllPartsFromRaw(raw);
-            json.EndMatter = endMatter;
+            var json = new JSON
+            {
+                AddressRange = response.AddressRange?.ToString(),
+                Raw = (from line in response.Raw.Split(['\r', '\n']) where line.Length > 0 select line).ToArray(),
+                OrganizationName = response.OrganizationName,
+                RespondedServers = response.RespondedServers,
+                RegistrarRegistrationExpirationDate = ExtractPartFromRaw("Registrar Registration Expiration Date", "", raw),
+                DomainStatus = ExtractPartFromRaw("Domain Status", "", raw).Split(' ')[0],
+                NameServers = ExtractPartFromRaw("Name Server", ",", raw).ToLower(),
+                AllParts = ExtractAllPartsFromRaw(raw),
+                EndMatter = endMatter
+            };
             return JsonConvert.SerializeObject(json);
         }
 
@@ -33,7 +35,7 @@ namespace Whois
         {
             var miFound = false;
             var miList = new List<string>();
-            var lines = (from line in raw.Split(new char[] { '\r', '\n' }) where line.Length > 0 select line).ToArray();
+            var lines = (from line in raw.Split(['\r', '\n']) where line.Length > 0 select line).ToArray();
             var miFoundAt = lines.Count();
             for (var i = 0; i < lines.Count(); i++)
             {
@@ -55,7 +57,7 @@ namespace Whois
         {
             var dsrFound = false;
             var dsrList = new List<string>();
-            var lines = (from line in raw.Split(new char[] { '\r', '\n' }) where line.Length > 0 select line).ToArray();
+            var lines = (from line in raw.Split(['\r', '\n']) where line.Length > 0 select line).ToArray();
             var dsrFoundAt = lines.Count();
             for (var i = 0; i < lines.Count(); i++)
             {
@@ -79,7 +81,7 @@ namespace Whois
             raw = raw.Replace("For more information on Whois status codes, please visit", "More information: For more information on Whois status codes, please visit");
             raw = raw.Replace(">>>", "").Replace("<<<", "");
             var pairs = (from line
-                        in raw.Split(new char[] { '\r', '\n' })
+                        in raw.Split(['\r', '\n'])
                          where line.Length > 0
                          let pos = line.IndexOf(':')
                          let pair = new string[] {
@@ -106,7 +108,7 @@ namespace Whois
         private static string ExtractPartFromRaw(string v, string sep, string raw)
         {
             return string.Join(sep, (from line
-                                    in raw.Split(new char[] { '\r', '\n' })
+                                    in raw.Split(['\r', '\n'])
                                      where line.Length > 0 && line.Contains(v)
                                      select line.Substring(line.IndexOf(":") + 1).Trim()).ToArray());
         }
